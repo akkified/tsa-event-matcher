@@ -5,26 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AAI TSA Event Matcher</title>
 <style>
-/* Apple-style: soft gray canvas, white cards, system type, slim frosted nav, generous air; four screens swap in place */
+/* AAI TSA theme: navy on warm cream, white cards, system type, slim frosted nav; navy + gold in dark */
 :root{
-  --bg:#f5f5f7; --surface:#ffffff; --fg:#1d1d1f; --muted:#6e6e73; --faint:#86868b;
-  --line:#d2d2d7; --accent:#0071e3; --accent-press:#0077ed; --accent-tint:rgba(0,113,227,.09);
-  --on-accent:#ffffff; --nav-bg:rgba(255,255,255,.72);
-  --shadow:0 4px 24px rgba(0,0,0,.07); --shadow-lg:0 10px 40px rgba(0,0,0,.10);
+  --bg:#f4f0e7; --surface:#ffffff; --fg:#22303d; --muted:#6b6358; --faint:#9a9082;
+  --line:#e3dac8; --accent:#12324f; --accent-press:#1c486e; --accent-tint:rgba(18,50,79,.09);
+  --on-accent:#ffffff; --nav-bg:rgba(244,240,231,.82);
+  --shadow:0 4px 24px rgba(60,50,35,.08); --shadow-lg:0 10px 40px rgba(60,50,35,.12);
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
   --radius:18px; --maxw:980px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#000000; --surface:#1c1c1e; --fg:#f5f5f7; --muted:#a1a1a6; --faint:#8d8d93;
-  --line:#3a3a3c; --accent:#2997ff; --accent-press:#47a6ff; --accent-tint:rgba(41,151,255,.16);
-  --on-accent:#ffffff; --nav-bg:rgba(0,0,0,.72);
+  --bg:#0f1b26; --surface:#17293a; --fg:#eaf0f6; --muted:#9fb1c2; --faint:#7d8ea0;
+  --line:#274055; --accent:#e0b84e; --accent-press:#ebc766; --accent-tint:rgba(224,184,78,.16);
+  --on-accent:#12243b; --nav-bg:rgba(15,27,38,.82);
   --shadow:0 4px 24px rgba(0,0,0,.5); --shadow-lg:0 12px 44px rgba(0,0,0,.6);
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#000000; --surface:#1c1c1e; --fg:#f5f5f7; --muted:#a1a1a6; --faint:#8d8d93;
-  --line:#3a3a3c; --accent:#2997ff; --accent-press:#47a6ff; --accent-tint:rgba(41,151,255,.16);
-  --on-accent:#ffffff; --nav-bg:rgba(0,0,0,.72);
+  --bg:#0f1b26; --surface:#17293a; --fg:#eaf0f6; --muted:#9fb1c2; --faint:#7d8ea0;
+  --line:#274055; --accent:#e0b84e; --accent-press:#ebc766; --accent-tint:rgba(224,184,78,.16);
+  --on-accent:#12243b; --nav-bg:rgba(15,27,38,.82);
   --shadow:0 4px 24px rgba(0,0,0,.5); --shadow-lg:0 12px 44px rgba(0,0,0,.6);
   color-scheme:dark;
 }
