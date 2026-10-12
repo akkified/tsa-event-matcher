@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AAI TSA Event Matcher</title>
+<style>
+/* Apple-style: soft gray canvas, white cards, system type, slim frosted nav, generous air; four screens swap in place */
+:root{
+  --bg:#f5f5f7; --surface:#ffffff; --fg:#1d1d1f; --muted:#6e6e73; --faint:#86868b;
+  --line:#d2d2d7; --accent:#0071e3; --accent-press:#0077ed; --accent-tint:rgba(0,113,227,.09);
+  --on-accent:#ffffff; --nav-bg:rgba(255,255,255,.72);
+  --shadow:0 4px 24px rgba(0,0,0,.07); --shadow-lg:0 10px 40px rgba(0,0,0,.10);
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+  --radius:18px; --maxw:980px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#000000; --surface:#1c1c1e; --fg:#f5f5f7; --muted:#a1a1a6; --faint:#8d8d93;
+  --line:#3a3a3c; --accent:#2997ff; --accent-press:#47a6ff; --accent-tint:rgba(41,151,255,.16);
+  --on-accent:#ffffff; --nav-bg:rgba(0,0,0,.72);
+  --shadow:0 4px 24px rgba(0,0,0,.5); --shadow-lg:0 12px 44px rgba(0,0,0,.6);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#1c1c1e; --fg:#f5f5f7; --muted:#a1a1a6; --faint:#8d8d93;
+  --line:#3a3a3c; --accent:#2997ff; --accent-press:#47a6ff; --accent-tint:rgba(41,151,255,.16);
+  --on-accent:#ffffff; --nav-bg:rgba(0,0,0,.72);
+  --shadow:0 4px 24px rgba(0,0,0,.5); --shadow-lg:0 12px 44px rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.015em;text-wrap:balance}
+p{margin:0}
+button{font-family:inherit;cursor:pointer;color:inherit}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--nav-bg);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--line)}
+.nav-inner{max-width:var(--maxw);margin:0 auto;padding:0 22px;height:48px;display:flex;align-items:center}
+.wordmark{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.wordmark .reg{color:var(--muted);font-weight:400}
+
+/* shared */
+.screen{max-width:var(--maxw);margin:0 auto;padding-inline:22px;padding-block:clamp(52px,9vw,112px)}
+.screen.anim{animation:fade .45s cubic-bezier(.4,0,.2,1) both}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.eyebrow{color:var(--accent);font-size:17px;font-weight:600}
+.btn-pill{background:var(--accent);color:var(--on-accent);border:none;border-radius:980px;padding:13px 26px;font-size:17px;font-weight:500;letter-spacing:-.01em;transition:background .2s,transform .08s}
+.btn-pill:hover{background:var(--accent-press)}
+.btn-pill:active{transform:scale(.97)}
+.link-chev{background:none;border:none;color:var(--accent);font-size:17px;font-weight:400;padding:6px 2px}
+.link-chev::after{content:" \203A"}
+.link-chev:hover{text-decoration:underline;text-underline-offset:3px}
+.link-plain{background:none;border:none;color:var(--accent);font-size:16px;padding:4px 2px}
+.link-plain:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* intro */
+.hero{text-align:center;display:flex;flex-direction:column;align-items:center}
+.hero-title{font-size:clamp(40px,8.2vw,80px);line-height:1.04;letter-spacing:-.025em;margin:14px 0 0}
+.hero-sub{font-size:clamp(18px,2.4vw,21px);color:var(--muted);max-width:30em;margin:22px auto 0;line-height:1.45}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;justify-content:center;margin-top:34px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:center;margin-top:40px;color:var(--faint);font-size:15px}
+.hero-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--faint);opacity:.6}
+
+/* quiz */
+.quiz{max-width:720px;margin:0 auto}
+.quiz-top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.step{color:var(--faint);font-size:15px;font-weight:500;font-variant-numeric:tabular-nums}
+.progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin:16px 0 34px}
+.progress>i{display:block;height:100%;width:7%;background:var(--accent);border-radius:4px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.q{font-size:clamp(26px,4.6vw,40px);line-height:1.1;letter-spacing:-.02em;font-weight:700;margin-bottom:26px}
+.opts{display:flex;flex-direction:column;gap:12px}
+.opt{display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:19px 22px;font-size:18px;color:var(--fg);transition:border-color .18s,box-shadow .18s,background .18s,transform .1s}
+.opt:hover{box-shadow:var(--shadow);border-color:transparent;transform:translateY(-1px)}
+.opt:active{transform:translateY(0)}
+.opt-label{flex:1;min-width:0}
+.tick{flex:none;width:24px;height:24px;border-radius:50%;border:1.6px solid var(--line);position:relative;transition:border-color .18s,background .18s}
+.opt.sel{border-color:var(--accent);background:var(--accent-tint)}
+.opt.sel .tick{background:var(--accent);border-color:var(--accent)}
+.opt.sel .tick::after{content:"";position:absolute;left:8px;top:4px;width:5px;height:10px;border:solid var(--on-accent);border-width:0 2px 2px 0;transform:rotate(45deg)}
+
+/* results */
+.results{max-width:760px;margin:0 auto}
+.sec-title{font-size:clamp(30px,5.4vw,46px);line-height:1.08;letter-spacing:-.02em;margin-top:12px}
+.sec-sub{color:var(--muted);font-size:clamp(16px,2vw,19px);margin-top:14px;max-width:34em}
+.cards{display:flex;flex-direction:column;gap:16px;margin-top:34px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow);position:relative}
+.card.top{box-shadow:var(--shadow-lg);border-color:transparent}
+.rank{font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--faint);text-transform:uppercase}
+.card.top .rank{color:var(--accent)}
+.card h3{font-size:23px;font-weight:700;letter-spacing:-.015em;margin-top:8px}
+.card .desc{color:var(--muted);font-size:16px;margin-top:8px;line-height:1.45}
+.card .why{display:flex;align-items:flex-start;gap:9px;margin-top:16px;font-size:15px;color:var(--fg)}
+.card .why .c{flex:none;width:19px;height:19px;border-radius:50%;background:var(--accent);position:relative;margin-top:1px}
+.card .why .c::after{content:"";position:absolute;left:6.5px;top:3.5px;width:4px;height:8px;border:solid var(--on-accent);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.meter{display:flex;align-items:center;gap:12px;margin-top:18px}
+.meter .track{flex:1;min-width:0;height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.meter .track>i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.meter .pct{flex:none;font-size:14px;color:var(--faint);font-variant-numeric:tabular-nums}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;color:var(--muted);font-size:16px;margin-top:28px;line-height:1.5}
+.results-foot,.browse-foot{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;margin-top:34px}
+
+/* browse */
+.browse{max-width:var(--maxw);margin:0 auto}
+.search{width:100%;max-width:520px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:17px;color:var(--fg);font-family:inherit;margin:22px 0 10px}
+.search::placeholder{color:var(--faint)}
+.search:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-tint)}
+.count{color:var(--faint);font-size:15px;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:16px;margin-top:18px}
+.gcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;min-width:0}
+.gcard h3{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.gcard p{color:var(--muted);font-size:14.5px;margin-top:8px;line-height:1.45}
+
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:3px;border-radius:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:440px){.nav-inner{padding:0 16px}.screen{padding-inline:16px}.btn-pill{width:100%;text-align:center}.hero-cta{flex-direction:column;width:100%}.hero-cta .link-chev{order:2}}
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-inner">
+    <span class="wordmark">Alliance Academy for Innovation <span class="reg">TSA</span></span>
+  </div>
+</header>
+
+<main>
+  <section id="screen-intro" class="screen">
+    <div class="hero">
+      <p class="eyebrow">Event Matcher</p>
+      <h1 class="hero-title">Find the events made for you.</h1>
+      <p class="hero-sub">Answer 15 quick questions about what you like and how you work. You get your best matches from all 42 high school events, each with a reason it fits. There are no wrong answers.</p>
+      <div class="hero-cta">
+        <button class="btn-pill" id="start">Take the quiz</button>
+        <button class="link-chev" id="toBrowse1">Browse all 42 events</button>
+      </div>
+      <div class="hero-meta"><span>15 questions</span><span class="dot"></span><span>42 events</span><span class="dot"></span><span>About 2 minutes</span></div>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen" hidden>
+    <div class="quiz">
+      <div class="quiz-top">
+        <span class="step" id="qcount">Question 1 of 15</span>
+        <button class="link-plain" id="back">Back</button>
+      </div>
+      <div class="progress"><i id="barfill"></i></div>
+      <h2 class="q" id="qtext"></h2>
+      <div class="opts" id="opts"></div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="screen" hidden>
+    <div class="results">
+      <p class="eyebrow">Your matches</p>
+      <h2 class="sec-title">Your top events</h2>
+      <p class="sec-sub" id="rsub"></p>
+      <div class="cards" id="cards"></div>
+      <div class="results-foot">
+        <button class="btn-pill" id="toBrowse2">See all 42 events</button>
+        <button class="link-chev" id="retake">Retake the quiz</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-browse" class="screen" hidden>
+    <div class="browse">
+      <p class="eyebrow">All events</p>
+      <h2 class="sec-title">Every high school event</h2>
+      <input class="search" id="search" type="text" placeholder="Search by name or what it involves" aria-label="Search events">
+      <p class="count" id="browseCount"></p>
+      <div class="grid" id="grid"></div>
+      <div class="browse-foot">
+        <button class="btn-pill" id="toQuiz">Take the quiz</button>
+        <button class="link-chev" id="toIntro">Back to start</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const DATA = {"events":[{"name":"Animatronics","desc":"Build a moving, lifelike figure using motors, electronics, and code.","tags":{"hands_build":2,"electronics":2,"robots":1,"programming":1}},{"name":"Architectural Design","desc":"Design a building and show it with drawings, plans, and a model.","tags":{"architecture":3,"cad":1,"graphic":1}},{"name":"Artificial Intelligence","desc":"Build an AI solution that tackles a real problem.","tags":{"ai":3,"programming":2,"data":1}},{"name":"Audio Podcasting","desc":"Plan, record, and edit a podcast episode on a theme.","tags":{"audio":2,"speaking":2,"writing":1}},{"name":"Automated Manufacturing Systems","desc":"Design an automated system that makes or moves a product.","tags":{"robots":2,"mech_eng":2,"hands_build":1,"programming":1}},{"name":"Biotechnology Design","desc":"Research a biotech topic and present your findings and design.","tags":{"science":3,"writing":1,"speaking":1}},{"name":"Board Game Design","desc":"Invent a board game with rules, pieces, and artwork.","tags":{"game":3,"graphic":1,"writing":1}},{"name":"CAD Architecture","desc":"Use CAD software to draft detailed architectural plans.","tags":{"cad":3,"architecture":2}},{"name":"CAD Engineering","desc":"Use CAD software to model mechanical parts and assemblies.","tags":{"cad":3,"mech_eng":2}},{"name":"Chapter Team","desc":"Run a meeting using parliamentary procedure as a team.","tags":{"leadership":3,"speaking":2,"teamwork":1}},{"name":"Childrens Stories","desc":"Write and illustrate an original children's book.","tags":{"writing":3,"drawing_art":2}},{"name":"Cybersecurity","desc":"Defend systems and solve security challenges.","tags":{"security":3,"programming":1}},{"name":"Data Science and Analytics","desc":"Dig through data to find patterns and tell the story in it.","tags":{"data":3,"programming":1}},{"name":"Debating Technological Issues","desc":"Argue both sides of a technology issue in a debate.","tags":{"arguing":3,"speaking":1,"writing":1}},{"name":"Digital Video Production","desc":"Write, film, and edit a short video on a theme.","tags":{"video":3,"graphic":1}},{"name":"Dragster Design","desc":"Design and build a CO2 powered dragster for speed.","tags":{"vehicles":3,"hands_build":1,"cad":1}},{"name":"Drone Challenge","desc":"Build and fly a drone to complete a mission.","tags":{"aero":3,"programming":1,"electronics":1}},{"name":"Engineering Design","desc":"Work as a team to take a design from idea to prototype.","tags":{"mech_eng":2,"hands_build":2,"teamwork":2}},{"name":"Extemporaneous Speech","desc":"Give a short speech on a topic you get on the spot.","tags":{"speaking":3,"quick_onsite":2}},{"name":"Fashion Design and Technology","desc":"Design clothing that mixes style with technology.","tags":{"fashion":3,"drawing_art":1}},{"name":"Flight Endurance","desc":"Build a rubber band powered plane that stays up the longest.","tags":{"aero":3,"hands_build":2,"mech_eng":1}},{"name":"Forensic Science","desc":"Use science to analyze evidence and crack a case.","tags":{"science":2,"data":2}},{"name":"Future Technology and Engineering Teacher","desc":"Plan and teach a lesson like a tech teacher.","tags":{"teaching":3,"speaking":1}},{"name":"Hybrid Racer XL","desc":"Build a hybrid powered vehicle and race it.","tags":{"vehicles":2,"mech_eng":2,"hands_build":1}},{"name":"Interior Design","desc":"Design the look and layout of an indoor space.","tags":{"architecture":2,"drawing_art":2,"graphic":1}},{"name":"Manufacturing Prototype","desc":"Design and build a working prototype of a product.","tags":{"mech_eng":2,"hands_build":1,"cad":2}},{"name":"Music Production","desc":"Compose and produce an original track.","tags":{"audio":3}},{"name":"On Demand Video","desc":"Make a full video on the spot in a short time limit.","tags":{"video":2,"quick_onsite":3}},{"name":"Photographic Technology","desc":"Build a portfolio of strong photographs.","tags":{"photo":3}},{"name":"Prepared Presentation","desc":"Deliver a polished presentation you prepared in advance.","tags":{"speaking":3,"prepared":1}},{"name":"Promotional Design","desc":"Design promo graphics like posters, logos, and layouts.","tags":{"graphic":3}},{"name":"Robotics","desc":"Build and program a robot to complete tasks.","tags":{"robots":3,"programming":1,"hands_build":1,"electronics":1}},{"name":"STEM Mass Media","desc":"Create a media package that promotes a STEM topic.","tags":{"writing":2,"graphic":1,"video":1}},{"name":"Software Development","desc":"Build an app or program that solves a problem.","tags":{"programming":3,"web":1}},{"name":"Structural Design and Engineering","desc":"Build a model structure that holds as much weight as possible.","tags":{"structures":3,"hands_build":1}},{"name":"Technology Bowl","desc":"Test your tech knowledge in a written test and quiz style rounds.","tags":{"knowledge":3,"teamwork":1}},{"name":"Technology Problem Solving","desc":"Solve a surprise problem on the spot with limited materials.","tags":{"quick_onsite":3,"hands_build":1}},{"name":"Transportation Modeling","desc":"Build a detailed scale model of a vehicle.","tags":{"vehicles":2,"drawing_art":2,"cad":1}},{"name":"VR","desc":"Create a virtual reality experience people can step into.","tags":{"immersive":3,"programming":1}},{"name":"Video Game Design","desc":"Design and build a playable video game.","tags":{"game":2,"programming":2,"graphic":1}},{"name":"Vlogging","desc":"Create a vlog that shares your voice and story on camera.","tags":{"video":2,"speaking":2}},{"name":"Webmaster","desc":"Design and build a website.","tags":{"web":3,"programming":1,"graphic":1}}],"questions":[{"q":"What sounds the most fun to spend time on?","options":[{"label":"Building something physical with tools and parts","tags":{"hands_build":2,"mech_eng":1}},{"label":"Writing code or working on a computer","tags":{"programming":2}},{"label":"Making something creative to look at or watch","tags":{"graphic":1,"video":1,"drawing_art":1}},{"label":"Writing, speaking, or working with people","tags":{"writing":1,"speaking":1,"leadership":1}},{"label":"Science, numbers, and figuring things out","tags":{"science":1,"data":1}},{"label":"None of these really fit me","tags":{}}]},{"q":"Which project would you pick first?","options":[{"label":"A robot or an automated machine","tags":{"robots":2,"electronics":1}},{"label":"An app, website, or program","tags":{"programming":2,"web":1}},{"label":"A video, photo set, or design","tags":{"video":1,"photo":1,"graphic":1}},{"label":"A speech, debate, or presentation","tags":{"speaking":2,"arguing":1}},{"label":"A research project you present","tags":{"science":1,"speaking":1,"writing":1}},{"label":"None of these really fit me","tags":{}}]},{"q":"If you were building something by hand, what would it be?","options":[{"label":"Something fast on wheels","tags":{"vehicles":3}},{"label":"Something that flies","tags":{"aero":3}},{"label":"A structure that holds a lot of weight","tags":{"structures":3}},{"label":"A robot or an animatronic figure","tags":{"robots":2,"electronics":1}},{"label":"A detailed scale model","tags":{"drawing_art":2,"vehicles":1}},{"label":"I would rather not build","tags":{}}]},{"q":"On a computer, what would you rather dig into?","options":[{"label":"Artificial intelligence and smart programs","tags":{"ai":3}},{"label":"Cybersecurity and protecting systems","tags":{"security":3}},{"label":"Data and finding patterns","tags":{"data":3}},{"label":"Building apps or software","tags":{"programming":2}},{"label":"Making websites","tags":{"web":3}},{"label":"Virtual reality and 3D worlds","tags":{"immersive":3}},{"label":"Not really a computer person","tags":{}}]},{"q":"Which creative area are you most into?","options":[{"label":"Graphic design, logos, and posters","tags":{"graphic":3}},{"label":"Photography","tags":{"photo":3}},{"label":"Video and film","tags":{"video":3}},{"label":"Music and audio","tags":{"audio":3}},{"label":"Drawing and illustration","tags":{"drawing_art":3}},{"label":"Fashion and clothing","tags":{"fashion":3}},{"label":"Not into art or visual stuff","tags":{}}]},{"q":"How do you feel about words and talking?","options":[{"label":"I like writing stories or scripts","tags":{"writing":3}},{"label":"I like speaking in front of people","tags":{"speaking":3}},{"label":"I like debating and arguing a point","tags":{"arguing":3}},{"label":"I like leading meetings and a team","tags":{"leadership":3}},{"label":"I like teaching other people","tags":{"teaching":3}},{"label":"I would rather let my work speak","tags":{}}]},{"q":"Do any of these design areas interest you?","options":[{"label":"Designing buildings","tags":{"architecture":3}},{"label":"Drafting precise plans in CAD","tags":{"cad":3}},{"label":"Decorating and laying out indoor spaces","tags":{"architecture":1,"drawing_art":2}},{"label":"Designing a board game or video game","tags":{"game":3}},{"label":"None of these","tags":{}}]},{"q":"How about science and investigation?","options":[{"label":"Biology and biotech","tags":{"science":3,"writing":1}},{"label":"Forensics and solving a case","tags":{"science":2,"data":2}},{"label":"Not my thing","tags":{}}]},{"q":"Which tech do you think is coolest?","options":[{"label":"Drones","tags":{"aero":2,"programming":1}},{"label":"Cars and engines","tags":{"vehicles":2,"mech_eng":1}},{"label":"Robots","tags":{"robots":2}},{"label":"VR headsets","tags":{"immersive":2}},{"label":"None of these","tags":{}}]},{"q":"How do you like to work?","options":[{"label":"On my own","tags":{}},{"label":"In a small group","tags":{"teamwork":1}},{"label":"On a big team","tags":{"teamwork":2,"leadership":1}}]},{"q":"Which style fits you better?","options":[{"label":"I like to prepare and polish something over time","tags":{"prepared":2}},{"label":"I like thinking fast and solving things on the spot","tags":{"quick_onsite":3}},{"label":"Either one is fine","tags":{}}]},{"q":"What would make you proudest to finish?","options":[{"label":"A machine or build that actually works","tags":{"hands_build":2,"mech_eng":1}},{"label":"A structure that holds real weight","tags":{"structures":2,"hands_build":1}},{"label":"A program, game, or site people use","tags":{"programming":2,"game":1,"web":1}},{"label":"A creative piece people enjoy","tags":{"video":1,"audio":1,"graphic":1,"drawing_art":1}},{"label":"A talk or paper that won people over","tags":{"speaking":1,"arguing":1,"writing":1}},{"label":"A lesson that taught people something new","tags":{"teaching":2}},{"label":"A design or model that looks amazing","tags":{"cad":1,"architecture":1,"drawing_art":1}},{"label":"None of these really fit me","tags":{}}]},{"q":"Which class would you look forward to?","options":[{"label":"Shop or engineering","tags":{"hands_build":2,"mech_eng":1}},{"label":"Computer science","tags":{"programming":2}},{"label":"Art or design","tags":{"drawing_art":1,"graphic":1,"fashion":1}},{"label":"English or speech","tags":{"writing":1,"speaking":1}},{"label":"Science","tags":{"science":2}},{"label":"Math","tags":{"data":2}},{"label":"None of these really fit me","tags":{}}]},{"q":"Which kind of challenge sounds the most like you?","options":[{"label":"Make something move or fly","tags":{"robots":1,"aero":1,"vehicles":1,"electronics":1}},{"label":"Protect or analyze information","tags":{"security":1,"data":1,"ai":1}},{"label":"Tell a story or send a message","tags":{"video":1,"writing":1,"graphic":1,"audio":1}},{"label":"Win people over with your voice","tags":{"speaking":1,"arguing":1,"leadership":1}},{"label":"Answer tough tech questions fast","tags":{"knowledge":3}},{"label":"None of these really fit me","tags":{}}]},{"q":"Last one. Which word fits you best?","options":[{"label":"Hands-on","tags":{"hands_build":2}},{"label":"Analytical","tags":{"data":1,"programming":1,"science":1}},{"label":"Creative","tags":{"drawing_art":1,"graphic":1,"video":1,"audio":1}},{"label":"Persuasive","tags":{"speaking":1,"arguing":1,"leadership":1}},{"label":"Detail-oriented","tags":{"cad":1,"drawing_art":1,"photo":1}},{"label":"Curious","tags":{"science":1,"ai":1,"knowledge":1}},{"label":"A mix of everything","tags":{}}]}]};
+const TAGLABEL = {hands_build:"building with your hands",electronics:"electronics and wiring",programming:"coding",robots:"robots",cad:"CAD and drafting",mech_eng:"engineering",vehicles:"vehicles and speed",aero:"flight",structures:"structures that hold weight",graphic:"graphic design",drawing_art:"drawing and art",photo:"photography",video:"video and film",audio:"music and audio",writing:"writing",speaking:"public speaking",leadership:"leading a team",arguing:"debate",teaching:"teaching others",science:"science",data:"data and analysis",ai:"artificial intelligence",security:"cybersecurity",web:"web development",immersive:"VR and 3D worlds",game:"game design",fashion:"fashion",architecture:"architecture",knowledge:"tech knowledge",quick_onsite:"thinking on the spot",prepared:"polishing a project over time",teamwork:"working on a team"};
+
+function byId(id){return document.getElementById(id);}
+const screens={intro:byId("screen-intro"),quiz:byId("screen-quiz"),results:byId("screen-results"),browse:byId("screen-browse")};
+let qi=0;
+const answers=new Array(DATA.questions.length).fill(null);
+
+function show(name){
+  for(const k in screens){screens[k].hidden=(k!==name);}
+  const s=screens[name]; s.classList.remove("anim"); void s.offsetWidth; s.classList.add("anim");
+  window.scrollTo({top:0,behavior:"auto"});
+}
+
+// scoring: cosine of answer vector vs each event profile
+function userVec(){const u={};answers.forEach((oi,i)=>{if(oi==null)return;const t=DATA.questions[i].options[oi].tags;for(const k in t)u[k]=(u[k]||0)+t[k];});return u;}
+function norm(v){let s=0;for(const k in v)s+=v[k]*v[k];return Math.sqrt(s);}
+function dot(a,b){let s=0;for(const k in a)if(b[k])s+=a[k]*b[k];return s;}
+function ranked(){const u=userVec();const un=norm(u);if(un===0)return[];return DATA.events.map(e=>({e,cos:dot(u,e.tags)/(un*(norm(e.tags)||1))})).sort((a,b)=>b.cos-a.cos);}
+function whyText(e,u){const sh=[];for(const k in e.tags)if(u[k])sh.push([k,e.tags[k]*u[k]]);sh.sort((a,b)=>b[1]-a[1]);const names=sh.slice(0,2).map(x=>TAGLABEL[x[0]]).filter(Boolean);if(!names.length)return "A well-rounded pick based on your answers.";if(names.length===1)return "Fits your interest in "+names[0]+".";return "Fits your interest in "+names[0]+" and "+names[1]+".";}
+
+function renderQ(){
+  const q=DATA.questions[qi];
+  byId("qcount").textContent="Question "+(qi+1)+" of "+DATA.questions.length;
+  byId("barfill").style.width=Math.round(((qi+1)/DATA.questions.length)*100)+"%";
+  byId("qtext").textContent=q.q;
+  const box=byId("opts"); box.innerHTML="";
+  q.options.forEach((o,i)=>{
+    const b=document.createElement("button");
+    b.className="opt"+(answers[qi]===i?" sel":"");
+    b.innerHTML='<span class="opt-label"></span><span class="tick" aria-hidden="true"></span>';
+    b.querySelector(".opt-label").textContent=o.label;
+    b.addEventListener("click",()=>pick(i));
+    box.appendChild(b);
+  });
+}
+function pick(i){
+  answers[qi]=i;
+  const opts=byId("opts").children;
+  for(let k=0;k<opts.length;k++)opts[k].classList.toggle("sel",k===i);
+  setTimeout(()=>{ if(qi<DATA.questions.length-1){qi++;renderQ();} else {finish();} },200);
+}
+function back(){ if(qi===0){reset();show("intro");} else {qi--;renderQ();} }
+function reset(){qi=0;answers.fill(null);}
+
+function finish(){
+  const r=ranked(); const cards=byId("cards"); cards.innerHTML="";
+  if(!r.length){
+    byId("rsub").textContent="";
+    const d=document.createElement("div"); d.className="note";
+    d.textContent="It looks like most answers were skipped, so there is not enough to match on yet. Retake the quiz and pick the options closest to you, or browse all 42 events.";
+    cards.appendChild(d); show("results"); return;
+  }
+  const u=userVec(); const top=r.slice(0,6);
+  byId("rsub").textContent="Your six best fits out of all 42 events, based on what you picked. Open the full list to explore the rest.";
+  top.forEach((row,idx)=>{
+    const pct=Math.max(35,Math.round(row.cos*100));
+    const c=document.createElement("div"); c.className="card"+(idx===0?" top":"");
+    c.innerHTML=
+      '<div class="rank">'+(idx===0?"Top match":"Match "+(idx+1))+'</div>'+
+      '<h3></h3>'+
+      '<p class="desc"></p>'+
+      '<div class="why"><span class="c"></span><span class="wt"></span></div>'+
+      '<div class="meter"><span class="track"><i></i></span><span class="pct">'+pct+'% match</span></div>';
+    c.querySelector("h3").textContent=row.e.name;
+    c.querySelector(".desc").textContent=row.e.desc;
+    c.querySelector(".wt").textContent=whyText(row.e,u);
+    c.querySelector(".meter i").style.width=pct+"%";
+    cards.appendChild(c);
+  });
+  show("results");
+}
+
+function renderGrid(filter){
+  const grid=byId("grid"); grid.innerHTML="";
+  const f=(filter||"").trim().toLowerCase();
+  let list=DATA.events.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  if(f)list=list.filter(e=>e.name.toLowerCase().includes(f)||e.desc.toLowerCase().includes(f));
+  byId("browseCount").textContent=list.length+" of "+DATA.events.length+" events";
+  list.forEach(e=>{
+    const d=document.createElement("div"); d.className="gcard";
+    d.innerHTML='<h3></h3><p></p>';
+    d.querySelector("h3").textContent=e.name;
+    d.querySelector("p").textContent=e.desc;
+    grid.appendChild(d);
+  });
+}
+
+byId("start").addEventListener("click",()=>{reset();renderQ();show("quiz");});
+byId("toQuiz").addEventListener("click",()=>{reset();renderQ();show("quiz");});
+byId("retake").addEventListener("click",()=>{reset();renderQ();show("quiz");});
+byId("back").addEventListener("click",back);
+byId("toBrowse1").addEventListener("click",()=>{renderGrid("");show("browse");});
+byId("toBrowse2").addEventListener("click",()=>{renderGrid("");show("browse");});
+byId("toIntro").addEventListener("click",()=>show("intro"));
+byId("search").addEventListener("input",e=>renderGrid(e.target.value));
+document.addEventListener("keydown",e=>{
+  if(screens.quiz.hidden)return;
+  const q=DATA.questions[qi];
+  const n=parseInt(e.key,10);
+  if(n>=1&&n<=q.options.length)pick(n-1);
+});
+renderGrid("");
+</script>
+</body>
+</html>
